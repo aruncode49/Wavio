@@ -12,26 +12,16 @@ export const authCallbackController = async (req: Request, res: Response) => {
       // signup flow
       const newUser = await User.create({
         clerkId: id,
+        role: "user",
         fullName: `${firstName} ${lastName}`,
         imageUrl,
       });
-
-      return res.status(201).json({
-        success: true,
-        user: newUser,
-      });
+      return res.success(newUser, "User created successfully", 201);
     }
 
     // login flow
-    return res.status(200).json({
-      success: true,
-      user,
-    });
+    return res.success(user, "User logged in successfully", 200);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    return res.error();
   }
 };
