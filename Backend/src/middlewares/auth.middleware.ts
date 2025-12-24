@@ -10,11 +10,14 @@ export const requireAuth = (
   try {
     const { userId } = getAuth(req);
     if (!userId) {
-      return res.error("Unauthorized", 401);
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
     next();
   } catch (error) {
-    return res.error();
+    return next(error);
   }
 };
 
@@ -28,10 +31,13 @@ export const requireAdmin = async (
     const user = await User.findOne({ clerkId: userId });
     const isAdmin = user?.role === "admin";
     if (!isAdmin) {
-      return res.error("Unauthorized", 401);
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
     next();
   } catch (error) {
-    return res.error();
+    return next(error);
   }
 };

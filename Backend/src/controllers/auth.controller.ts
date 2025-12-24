@@ -1,7 +1,11 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { User } from "@/models/user.model.js";
 
-export const authCallbackController = async (req: Request, res: Response) => {
+export const authCallbackController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id, firstName, lastName, imageUrl } = req.body;
 
@@ -16,12 +20,20 @@ export const authCallbackController = async (req: Request, res: Response) => {
         fullName: `${firstName} ${lastName}`,
         imageUrl,
       });
-      return res.success(newUser, "User created successfully", 201);
+      return res.status(201).json({
+        success: true,
+        message: "User created successfully",
+        data: newUser,
+      });
     }
 
     // login flow
-    return res.success(user, "User logged in successfully", 200);
+    return res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      data: user,
+    });
   } catch (error) {
-    return res.error();
+    return next(error);
   }
 };

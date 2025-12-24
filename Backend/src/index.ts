@@ -2,35 +2,56 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // lib imports
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { clerkMiddleware } from "@clerk/express";
+import fileUpload from "express-fileupload";
+import path from "path";
 
 // app imports
 import { connectToDB } from "@/lib/db.js";
 import userRoutes from "@/routes/user.routes.js";
-import adminRoutes from "@/routes/admin.routes.js";
 import albumRoutes from "@/routes/album.routes.js";
 import authRoutes from "@/routes/auth.routes.js";
 import songRoutes from "@/routes/song.routes.js";
 import statisticsRoutes from "@/routes/statistics.routes.js";
-import { responseMiddleware } from "@/middlewares/response.middleware.js";
 
 // app instance
 const app = express();
 const PORT = process.env.PORT;
+const __dirname = process.cwd();
 
 // app middlewares
 app.use(express.json());
 app.use(clerkMiddleware());
-app.use(responseMiddleware);
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: path.join(__dirname, "tmp"),
+    createParentPath: true,
+    limits: {
+      fileSize: 1024 * 1024 * 10, // 10MB
+    },
+    abortOnLimit: true,
+  })
+);
 
 // app routes
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/album", albumRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/song", songRoutes);
 app.use("/api/statistics", statisticsRoutes);
+
+// app error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  res.status(500).json({
+    success: false,
+    message:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Internal Server Error",
+  });
+});
 
 // app server
 app.listen(PORT, () => {
