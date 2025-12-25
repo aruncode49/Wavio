@@ -1,9 +1,12 @@
 import { Router } from "express";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
+import { getAllUserController } from "@/controllers/user.controller.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-    res.send("Hello User Routes!");
-});
+// static routes
+router.get("/", requireAuth, getAllUserController);
+
+// TODO: get messages (between two chats)
 
 export default router;

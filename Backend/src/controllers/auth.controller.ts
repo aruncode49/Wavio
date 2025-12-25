@@ -37,3 +37,19 @@ export const authCallbackController = async (
     return next(error);
   }
 };
+
+export const checkAdminController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // directly return true because we have already checked in middleware
+    return res.status(200).json({
+      success: true,
+      message: "User is an admin",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};

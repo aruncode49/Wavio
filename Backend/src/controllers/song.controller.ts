@@ -94,8 +94,8 @@ export const updateSongController = async (
     const { id } = req.params;
     const { albumId: newAlbumId, ...songData } = req.body;
 
+    // find song by id
     const song = await Song.findById(id);
-
     if (!song) {
       return res.status(404).json({
         success: false,
@@ -103,22 +103,35 @@ export const updateSongController = async (
       });
     }
 
+    // get old album id
     const oldAlbumId = song.albumId?.toString();
 
-    // update song
-    const updatedSong = await Song.findByIdAndUpdate(
-      id,
-      { ...songData, albumId: newAlbumId },
-      { new: true }
-    );
+    // update image file if exists
+    let imageUrl: string | undefined;
+    if (req.files?.imageFile) {
+      imageUrl = await uploadFile(req.files.imageFile as UploadedFile);
+    }
 
-    // album changed
+    // update song data
+    const updateData = {
+      ...songData,
+      albumId: newAlbumId,
+      ...(imageUrl && { imageUrl }),
+    };
+
+    // update song
+    const updatedSong = await Song.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    // remove song from old album if album changed
     if (oldAlbumId && oldAlbumId !== newAlbumId) {
       await Album.findByIdAndUpdate(oldAlbumId, {
         $pull: { songs: updatedSong!._id },
       });
     }
 
+    // add song to new album if album changed
     if (newAlbumId && oldAlbumId !== newAlbumId) {
       await Album.findByIdAndUpdate(newAlbumId, {
         $addToSet: { songs: updatedSong!._id },
@@ -132,5 +145,88 @@ export const updateSongController = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const getAllSongsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // find songs in created latest order
+    const songs = await Song.find().sort({ createdAt: -1 });
+
+    // return songs
+    return res.status(200).json({
+      success: true,
+      message: "Songs fetched successfully",
+      data: songs,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getSongByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    // find song by id
+    const song = await Song.findById(id);
+    if (!song) {
+      return res.status(404).json({
+        success: false,
+        message: "Song not found",
+      });
+    }
+
+    // return song
+    return res.status(200).json({
+      success: true,
+      message: "Song fetched successfully",
+      data: song,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getRandomSongsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // get limit from the query params
+    const { limit = 4 } = req.query;
+
+    // find random songs using mongoose aggregate
+    const songs = await Song.aggregate([
+      { $sample: { size: Number(limit) } },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          artist: 1,
+          duration: 1,
+          imageUrl: 1,
+          audioUrl: 1,
+        },
+      },
+    ]);
+
+    // return songs
+    return res.status(200).json({
+      success: true,
+      message: "Songs fetched successfully",
+      data: songs,
+    });
+  } catch (error) {
+    return next(error);
   }
 };

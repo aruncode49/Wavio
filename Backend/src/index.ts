@@ -13,7 +13,7 @@ import userRoutes from "@/routes/user.routes.js";
 import albumRoutes from "@/routes/album.routes.js";
 import authRoutes from "@/routes/auth.routes.js";
 import songRoutes from "@/routes/song.routes.js";
-import statisticsRoutes from "@/routes/statistics.routes.js";
+import statsRoutes from "@/routes/stats.routes.js";
 
 // app instance
 const app = express();
@@ -36,11 +36,11 @@ app.use(
 );
 
 // app routes
-app.use("/api/users", userRoutes);
-app.use("/api/album", albumRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/song", songRoutes);
-app.use("/api/statistics", statisticsRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/album", albumRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/song", songRoutes);
+app.use("/api/v1/stats", statsRoutes);
 
 // app error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

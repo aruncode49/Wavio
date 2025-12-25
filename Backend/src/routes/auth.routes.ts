@@ -1,8 +1,14 @@
 import { Router } from "express";
-import { authCallbackController } from "@/controllers/auth.controller.js";
+import {
+  authCallbackController,
+  checkAdminController,
+} from "@/controllers/auth.controller.js";
+import { requireAdmin, requireAuth } from "@/middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/auth-callback", authCallbackController);
+// static routes
+router.post("/callback", authCallbackController);
+router.get("/check-admin", requireAuth, requireAdmin, checkAdminController);
 
 export default router;
